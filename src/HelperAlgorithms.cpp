@@ -4,39 +4,32 @@
 #include <queue>
 #include <unordered_set>
 
-// MC-DD: Degeneracy-based maximum clique algorithm
 Clique HelperAlgorithms::runMCDD(const Graph &graph)
 {
     std::cout << "[Helper] Running MC-DD algorithm..." << std::endl;
 
-    // Implementation of the degeneracy-based approach
     Clique maximalClique = findMaximalCliqueByDegeneracy(graph);
 
     std::cout << "[Helper] MC-DD returns a clique of size " << maximalClique.size() << std::endl;
     return maximalClique;
 }
 
-// MC-EGO: Ego-centric maximum clique algorithm
 Clique HelperAlgorithms::runMCEGO(const Graph &graph)
 {
     std::cout << "[Helper] Running MC-EGO algorithm..." << std::endl;
 
-    // Initialize best clique
     Clique bestClique;
 
-    // Try each vertex as the center of an ego network
     for (VertexID v = 0; v < graph.getNumVertices(); v++)
     {
-        // Only process vertices with enough neighbors
+
         if (graph.degree(v) < bestClique.size())
         {
             continue;
         }
 
-        // Find maximal clique in ego network of v
         Clique egoClique = exploreEgoNetwork(graph, v);
 
-        // Update best clique if better
         if (egoClique.size() > bestClique.size())
         {
             bestClique = egoClique;
@@ -47,24 +40,21 @@ Clique HelperAlgorithms::runMCEGO(const Graph &graph)
     return bestClique;
 }
 
-// Find a maximal clique by degeneracy ordering
 Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
 {
-    // Compute degeneracy ordering
+
     std::vector<VertexID> degeneracyOrder;
     std::vector<int> degrees(graph.getNumVertices());
     std::vector<bool> removed(graph.getNumVertices(), false);
 
-    // Initialize degrees
     for (VertexID v = 0; v < graph.getNumVertices(); v++)
     {
         degrees[v] = graph.degree(v);
     }
 
-    // Process vertices in non-decreasing order of degree
     for (VertexID i = 0; i < graph.getNumVertices(); i++)
     {
-        // Find unremoved vertex with minimum degree
+
         VertexID minDegVertex = 0;
         int minDeg = graph.getNumVertices() + 1;
 
@@ -77,13 +67,10 @@ Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
             }
         }
 
-        // Add to degeneracy ordering
         degeneracyOrder.push_back(minDegVertex);
 
-        // Mark as removed
         removed[minDegVertex] = true;
 
-        // Update degrees of adjacent vertices
         for (VertexID neighbor : graph.getNeighbors(minDegVertex))
         {
             if (!removed[neighbor])
@@ -93,7 +80,6 @@ Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
         }
     }
 
-    // Find a maximal clique by adding vertices in reverse degeneracy order
     Clique maximalClique;
     std::vector<bool> inClique(graph.getNumVertices(), false);
 
@@ -101,7 +87,6 @@ Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
     {
         VertexID v = *it;
 
-        // Check if v is adjacent to all vertices in the current clique
         bool canAdd = true;
         for (VertexID u : maximalClique)
         {
@@ -112,7 +97,6 @@ Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
             }
         }
 
-        // Add v to clique if possible
         if (canAdd)
         {
             maximalClique.push_back(v);
@@ -123,29 +107,24 @@ Clique HelperAlgorithms::findMaximalCliqueByDegeneracy(const Graph &graph)
     return maximalClique;
 }
 
-// Enhanced MC-EGO implementation
 Clique HelperAlgorithms::runImprovedMCEGO(const Graph &graph)
 {
     std::cout << "[Helper] Running Improved MC-EGO algorithm..." << std::endl;
 
-    // Initialize best clique
     Clique bestClique;
 
-    // Get the degeneracy ordering - we'll explore vertices in this order for better results
     std::vector<VertexID> degOrder;
     std::vector<int> degrees(graph.getNumVertices());
     std::vector<bool> removed(graph.getNumVertices(), false);
 
-    // Initialize degrees
     for (VertexID v = 0; v < graph.getNumVertices(); v++)
     {
         degrees[v] = graph.degree(v);
     }
 
-    // Create degeneracy ordering
     for (VertexID i = 0; i < graph.getNumVertices(); i++)
     {
-        // Find unremoved vertex with minimum degree
+
         VertexID minDegVertex = 0;
         int minDeg = graph.getNumVertices() + 1;
 
@@ -158,13 +137,10 @@ Clique HelperAlgorithms::runImprovedMCEGO(const Graph &graph)
             }
         }
 
-        // Add to degeneracy ordering
         degOrder.push_back(minDegVertex);
 
-        // Mark as removed
         removed[minDegVertex] = true;
 
-        // Update degrees of adjacent vertices
         for (VertexID neighbor : graph.getNeighbors(minDegVertex))
         {
             if (!removed[neighbor])
@@ -174,22 +150,18 @@ Clique HelperAlgorithms::runImprovedMCEGO(const Graph &graph)
         }
     }
 
-    // Reverse the order to put high-degree vertices first
     std::reverse(degOrder.begin(), degOrder.end());
 
-    // Process vertices in the ordering
     for (VertexID v : degOrder)
     {
-        // Only process vertices with enough neighbors
+
         if (graph.degree(v) < bestClique.size())
         {
             continue;
         }
 
-        // Find maximal clique in ego network of v
         Clique egoClique = improvedExploreEgoNetwork(graph, v);
 
-        // Update best clique if better
         if (egoClique.size() > bestClique.size())
         {
             bestClique = egoClique;
@@ -202,13 +174,10 @@ Clique HelperAlgorithms::runImprovedMCEGO(const Graph &graph)
     return bestClique;
 }
 
-// Add this function to HelperAlgorithms.cpp to improve ego network processing
 Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID center)
 {
-    // Get neighbors of center
     const auto &neighbors = graph.getNeighbors(center);
 
-    // If not enough neighbors, return singleton clique
     if (neighbors.empty())
     {
         Clique singletonClique;
@@ -216,10 +185,8 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         return singletonClique;
     }
 
-    // Create candidate set (neighbors of center)
     std::vector<VertexID> candidates(neighbors.begin(), neighbors.end());
 
-    // Compute density of the neighborhood
     double density = 0.0;
     int edgeCount = 0;
     int possibleEdges = candidates.size() * (candidates.size() - 1) / 2;
@@ -239,16 +206,13 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         density = static_cast<double>(edgeCount) / possibleEdges;
     }
 
-    // For dense neighborhoods, use a more sophisticated approach
     if (density > 0.5 && candidates.size() > 10)
     {
         return findMaximalCliqueInDenseNeighborhood(graph, center, candidates);
     }
 
-    // Filter candidates to find max(k)-core in the neighborhood
     std::vector<int> localDegree(graph.getNumVertices(), 0);
 
-    // Compute local degrees
     for (auto v : candidates)
     {
         for (auto u : candidates)
@@ -260,14 +224,12 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         }
     }
 
-    // Improved k-core reduction - determine max k dynamically
     int maxK = 0;
     for (auto v : candidates)
     {
         maxK = std::max(maxK, localDegree[v]);
     }
 
-    // Start with a higher k-value to quickly reduce the subgraph
     int k = std::max(1, maxK / 2);
     bool reduced = true;
 
@@ -285,7 +247,7 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
             else
             {
                 reduced = true;
-                // Update degrees of neighbors
+
                 for (auto u : candidates)
                 {
                     if (u != v && graph.isAdjacent(u, v))
@@ -298,7 +260,6 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
 
         if (newCandidates.empty() && k > 1)
         {
-            // If all vertices removed, try a lower k
             k = k / 2;
             reduced = true;
             newCandidates = candidates;
@@ -307,7 +268,6 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         {
             candidates = newCandidates;
 
-            // If stable at this k, try increasing it
             if (!reduced && !candidates.empty() && k < maxK)
             {
                 k++;
@@ -316,14 +276,11 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         }
     }
 
-    // Use degeneracy ordering for better clique finding
     std::vector<VertexID> degeneracyOrder;
     std::vector<bool> vertexRemoved(graph.getNumVertices(), false);
 
-    // Create degeneracy ordering
     while (!candidates.empty())
     {
-        // Find vertex with minimum local degree
         VertexID minDegVertex = candidates[0];
         VertexID minDeg = localDegree[minDegVertex];
         int minIdx = 0;
@@ -338,15 +295,12 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
             }
         }
 
-        // Add to ordering
         degeneracyOrder.push_back(minDegVertex);
         vertexRemoved[minDegVertex] = true;
 
-        // Remove from candidates
         candidates[minIdx] = candidates.back();
         candidates.pop_back();
 
-        // Update local degrees
         for (auto v : candidates)
         {
             if (graph.isAdjacent(v, minDegVertex))
@@ -356,15 +310,12 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
         }
     }
 
-    // Find maximal clique in reverse degeneracy order
     Clique maximalClique;
 
-    // Process vertices in reverse degeneracy order
     for (auto it = degeneracyOrder.rbegin(); it != degeneracyOrder.rend(); ++it)
     {
         VertexID v = *it;
 
-        // Check if v is adjacent to all vertices in the current clique
         bool canAdd = true;
         for (auto u : maximalClique)
         {
@@ -375,30 +326,26 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
             }
         }
 
-        // Add v to clique if possible
         if (canAdd)
         {
             maximalClique.push_back(v);
         }
     }
 
-    // Add the center vertex
     maximalClique.push_back(center);
 
-    // Try to extend the clique greedily
     bool extended;
     do
     {
         extended = false;
         for (auto n : neighbors)
         {
-            // Skip vertices already in the clique
+
             if (std::find(maximalClique.begin(), maximalClique.end(), n) != maximalClique.end())
             {
                 continue;
             }
 
-            // Check if n is adjacent to all vertices in the clique
             bool canAdd = true;
             for (auto u : maximalClique)
             {
@@ -409,12 +356,11 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
                 }
             }
 
-            // Add n to clique if possible
             if (canAdd)
             {
                 maximalClique.push_back(n);
                 extended = true;
-                break; // Start over with the new clique
+                break;
             }
         }
     } while (extended);
@@ -422,20 +368,17 @@ Clique HelperAlgorithms::improvedExploreEgoNetwork(const Graph &graph, VertexID 
     return maximalClique;
 }
 
-// Helper for dense neighborhoods
 Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph, VertexID center, const std::vector<VertexID> &neighbors)
 {
-    // For dense neighborhoods, try several starting points
-    Clique bestClique;
-    bestClique.push_back(center); // Start with just the center
 
-    // Try multiple starting vertices for diversity
+    Clique bestClique;
+    bestClique.push_back(center);
+
     std::vector<VertexID> startVertices;
 
-    // Select a diverse set of high-degree vertices
     if (neighbors.size() > 20)
     {
-        // Sort neighbors by degree
+
         std::vector<std::pair<int, VertexID>> sortedNeighbors;
         for (auto n : neighbors)
         {
@@ -445,14 +388,12 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
                   [](const std::pair<int, VertexID> &a, const std::pair<int, VertexID> &b)
                   { return a.first > b.first; });
 
-        // Take top 10 and some random ones for diversity
         int topCount = std::min(10, static_cast<int>(sortedNeighbors.size()));
         for (int i = 0; i < topCount; i++)
         {
             startVertices.push_back(sortedNeighbors[i].second);
         }
 
-        // Add some random vertices for diversity
         if (neighbors.size() > topCount)
         {
             for (int i = 0; i < 5 && i + topCount < neighbors.size(); i++)
@@ -467,14 +408,12 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
         startVertices = neighbors;
     }
 
-    // Try each starting vertex
     for (auto start : startVertices)
     {
         Clique currentClique;
         currentClique.push_back(center);
         currentClique.push_back(start);
 
-        // Add vertices greedily
         bool extended;
         do
         {
@@ -484,13 +423,12 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
 
             for (auto n : neighbors)
             {
-                // Skip vertices already in the clique
+
                 if (std::find(currentClique.begin(), currentClique.end(), n) != currentClique.end())
                 {
                     continue;
                 }
 
-                // Count connections to the current clique
                 int connections = 0;
                 bool canAdd = true;
                 for (auto u : currentClique)
@@ -506,7 +444,6 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
                     }
                 }
 
-                // If fully connected and has more overall connections, prefer this vertex
                 if (canAdd && connections > maxConnections)
                 {
                     maxConnections = connections;
@@ -521,7 +458,6 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
             }
         } while (extended);
 
-        // Keep the best clique found
         if (currentClique.size() > bestClique.size())
         {
             bestClique = currentClique;
@@ -531,19 +467,16 @@ Clique HelperAlgorithms::findMaximalCliqueInDenseNeighborhood(const Graph &graph
     return bestClique;
 }
 
-// Color vertices by degeneracy ordering
 int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<VertexID> &vertices)
 {
     int n = vertices.size();
     if (n == 0)
         return 0;
 
-    // Compute degeneracy ordering
     std::vector<VertexID> degeneracyOrder;
     std::vector<int> degrees(n);
     std::vector<bool> removed(n, false);
 
-    // Initialize degrees
     for (int i = 0; i < n; i++)
     {
         VertexID v = vertices[i];
@@ -558,10 +491,9 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
         degrees[i] = deg;
     }
 
-    // Process vertices in non-decreasing order of degree
     for (int i = 0; i < n; i++)
     {
-        // Find unremoved vertex with minimum degree
+
         int minDegIdx = -1;
         int minDeg = n;
 
@@ -574,13 +506,10 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
             }
         }
 
-        // Add to degeneracy ordering
         degeneracyOrder.push_back(vertices[minDegIdx]);
 
-        // Mark as removed
         removed[minDegIdx] = true;
 
-        // Update degrees of adjacent vertices
         for (int j = 0; j < n; j++)
         {
             if (removed[j])
@@ -596,7 +525,6 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
         }
     }
 
-    // Color vertices in the computed order
     std::vector<int> color(graph.getNumVertices(), -1);
     int maxColor = -1;
 
@@ -604,7 +532,6 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
     {
         std::vector<bool> used(n, false);
 
-        // Mark colors used by neighbors
         for (VertexID u : graph.getNeighbors(v))
         {
             if (color[u] != -1)
@@ -613,7 +540,6 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
             }
         }
 
-        // Find smallest available color
         int c = 0;
         while (c < n && used[c])
             c++;
@@ -622,16 +548,14 @@ int HelperAlgorithms::colorByDegeneracy(const Graph &graph, const std::vector<Ve
         maxColor = std::max(maxColor, c);
     }
 
-    return maxColor + 1; // Number of colors used
+    return maxColor + 1;
 }
 
-// Explore ego network of a vertex to find a maximal clique
 Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
 {
-    // Get neighbors of center
+
     const auto &neighbors = graph.getNeighbors(center);
 
-    // If not enough neighbors, return empty clique
     if (neighbors.size() == 0)
     {
         Clique singletonClique;
@@ -639,13 +563,10 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
         return singletonClique;
     }
 
-    // Create candidate set (neighbors of center)
     std::vector<VertexID> candidates(neighbors.begin(), neighbors.end());
 
-    // Filter candidates to find max(k)-core in the neighborhood
     std::vector<int> localDegree(graph.getNumVertices(), 0);
 
-    // Compute local degrees
     for (auto v : candidates)
     {
         for (auto u : candidates)
@@ -657,9 +578,8 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
         }
     }
 
-    // K-core reduction
     bool reduced;
-    int k = 1; // Start with 1-core
+    int k = 1;
 
     do
     {
@@ -674,10 +594,9 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
             }
             else
             {
-                // Remove vertices with degree < k
+
                 reduced = true;
 
-                // Update degrees of neighbors
                 for (auto u : candidates)
                 {
                     if (u != v && graph.isAdjacent(u, v))
@@ -692,23 +611,21 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
 
         if (!reduced && !candidates.empty())
         {
-            // Try next k-value
+
             k++;
             reduced = true;
         }
     } while (reduced);
 
-    // Use degeneracy-based approach to find maximal clique in the filtered neighborhood
     Clique maximalClique;
     std::vector<bool> inClique(graph.getNumVertices(), false);
 
-    // Compute degeneracy ordering on candidates
     std::vector<VertexID> degeneracyOrder;
     std::vector<bool> removed(graph.getNumVertices(), false);
 
     while (!candidates.empty())
     {
-        // Find vertex with minimum local degree
+
         VertexID minDegVertex = candidates[0];
         for (auto v : candidates)
         {
@@ -718,14 +635,11 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
             }
         }
 
-        // Add to degeneracy ordering
         degeneracyOrder.push_back(minDegVertex);
 
-        // Remove from candidates
         candidates.erase(std::remove(candidates.begin(), candidates.end(), minDegVertex), candidates.end());
         removed[minDegVertex] = true;
 
-        // Update local degrees
         for (auto v : candidates)
         {
             if (graph.isAdjacent(v, minDegVertex))
@@ -735,12 +649,10 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
         }
     }
 
-    // Find maximal clique in reverse degeneracy order
     for (auto it = degeneracyOrder.rbegin(); it != degeneracyOrder.rend(); ++it)
     {
         VertexID v = *it;
 
-        // Check if v is adjacent to all vertices in current clique
         bool canAdd = true;
         for (auto u : maximalClique)
         {
@@ -751,22 +663,19 @@ Clique HelperAlgorithms::exploreEgoNetwork(const Graph &graph, VertexID center)
             }
         }
 
-        // Add to clique if possible
         if (canAdd)
         {
             maximalClique.push_back(v);
         }
     }
 
-    // Add the center vertex to the clique
     maximalClique.push_back(center);
 
     return maximalClique;
 }
 
-// Compute an upper bound for the maximum clique size
 int HelperAlgorithms::computeUpperBound(const Graph &graph, const std::vector<VertexID> &candidates)
 {
-    // Use coloring-based bound
+
     return colorByDegeneracy(graph, candidates);
 }

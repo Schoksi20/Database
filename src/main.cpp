@@ -21,7 +21,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-// Print build information
 #ifndef NDEBUG
     std::cout << "**** MC-BRB (Debug) build at " << __TIME__ << " " << __DATE__ << " ****" << std::endl;
 #else
@@ -30,7 +29,6 @@ int main(int argc, char *argv[])
 
     std::cout << "**** Alg: " << argv[1] << ", Graph: " << argv[2] << " ****" << std::endl;
 
-    // Create and load the graph
     auto startTime = std::chrono::high_resolution_clock::now();
 
     Graph graph;
@@ -43,7 +41,6 @@ int main(int argc, char *argv[])
     graph.printSummary();
     graph.preprocess();
 
-    // Choose algorithm to run
     std::string algorithm = argv[1];
     std::vector<VertexID> bestClique;
 
@@ -57,19 +54,17 @@ int main(int argc, char *argv[])
     }
     else if (algorithm == "MC-BRB")
     {
-        // Initialize the MC-BRB solver
+
         MCBRBSolver solver(graph);
         solver.initialize();
 
-        // Run the branch-and-bound search
         solver.branchAndBound();
 
-        // Retrieve best clique
         bestClique = solver.getBestClique();
     }
     else if (algorithm == "verify")
     {
-        // Load clique from file (placeholder)
+
         std::cout << "Verification not yet implemented." << std::endl;
         return 0;
     }
@@ -79,15 +74,12 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Calculate elapsed time
     auto endTime = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(endTime - startTime);
 
-    // Display final result
     std::cout << "Final best clique size: " << bestClique.size() << std::endl;
     std::cout << "Total execution time: " << duration.count() << " microseconds" << std::endl;
 
-    // Output clique vertices if not too large
     if (bestClique.size() <= 100)
     {
         std::cout << "Clique vertices: ";
@@ -98,7 +90,6 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
     }
 
-    // Write clique to file if requested
     if (argc >= 4 && std::string(argv[3]) == "output")
     {
         std::cout << "Writing clique to file: clique.txt" << std::endl;
